@@ -1,0 +1,14 @@
+.DS_Store
+
+env/
+venv/
+ENV/
+.venv/
+.env
+.Python
+
+# Ignore Python cache files
+**/__pycache__/
+*.py[cod]
+
+media

@@ -1,11 +1,7 @@
 from rest_framework import serializers
-
-from content_app.models import Video 
+from .models import Video
 
 class VideoSerializer(serializers.ModelSerializer):
-    """
-        Video Serializer
-    """
     class Meta:
-        model = Video 
-        exclude = ['video_file']
+        model = Video
+        fields = ['id', 'created_at', 'title', 'description', 'thumbnail_url', 'category']

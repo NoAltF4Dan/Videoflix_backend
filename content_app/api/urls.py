@@ -1,9 +1,8 @@
 from django.urls import path
-from .views import VideoListView, HLSPlayListView, HSLSegmentView
-
+from .views import VideoListView, VideoHLSManifestView, VideoSegmentView
 
 urlpatterns = [
-    path('video/', VideoListView.as_view(), name='video-list'),
-    path('video/<int:pk>/<str:resolution>/index.m3u8', HLSPlayListView.as_view(), name='HSL-playlist'),
-    path('video/<int:pk>/<str:resolution>/<str:segment>/', HSLSegmentView.as_view(), name='HSL-segment')
+    path('', VideoListView.as_view(), name='video_list'),
+    path('<int:movie_id>/<str:resolution>/index.m3u8', VideoHLSManifestView.as_view(), name='video_hls_manifest'),
+    path('<int:movie_id>/<str:resolution>/<str:segment>/', VideoSegmentView.as_view(), name='video_segment'),
 ]

@@ -11,4 +11,40 @@ ENV/
 **/__pycache__/
 *.py[cod]
 
-media
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+
+# Django
+*.log
+*.pot
+*.pyc
+db.sqlite3
+/media/
+*.pyc
+
+# Environment
+.env
+.env.*
+
+# Docker
+*.env
+*.dockerignore
+docker-compose.override.yml
+**/Dockerfile
+
+# IDEs / Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Node (falls du Frontend hast)
+node_modules/
+dist/

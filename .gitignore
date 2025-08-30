@@ -28,7 +28,9 @@ db.sqlite3
 
 # Environment
 .env
-.env.*
+.env.local
+.env.dev
+.env.template.example
 
 # Docker
 *.env

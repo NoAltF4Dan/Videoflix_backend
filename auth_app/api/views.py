@@ -129,8 +129,117 @@ class LogoutView(APIView):
 
 
 class CookieTokenRefreshView(APIView):
-    """
-    Refreshes the access token using the refresh token from cookies.
-    """
     def post(self, request, *args, **kwargs):
-        ref
+        # Refresh-Token aus Cookies holen
+        refresh_token = request.COOKIES.get('refresh_token')
+        if not refresh_token:
+            return Response(
+                {"detail": "Refresh-Token fehlt."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Gültigkeit prüfen und neuen Access-Token erzeugen
+            refresh = RefreshToken(refresh_token)
+            access_token = str(refresh.access_token)
+        except Exception:
+            return Response(
+                {"detail": "Ungültiger Refresh-Token."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # Response mit neuem Access-Token + Cookie
+        response = Response(
+            {
+                "detail": "Token refreshed",
+                "access": access_token
+            },
+            status=status.HTTP_200_OK
+        )
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            secure=False,  # Für Produktion auf True setzen
+            samesite="Lax"
+        )
+
+        return response
+
+class PasswordResetView(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+        if not email:
+            return Response(
+                {"error": "Email ist erforderlich."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # Kein Hinweis auf Existenz eines Benutzers für Security
+            return Response(
+                {"detail": "An email has been sent to reset your password."},
+                status=status.HTTP_200_OK
+            )
+
+        # UID und Token generieren
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        reset_link = f"http://localhost:8000/api/password_reset_confirm/{uidb64}/{token}/"
+
+        # E-Mail verschicken
+        send_mail(
+            "Passwort zurücksetzen",
+            f"Klicke hier, um dein Passwort zurückzusetzen: {reset_link}",
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+
+        return Response(
+            {"detail": "An email has been sent to reset your password."},
+            status=status.HTTP_200_OK
+        )
+
+
+class PasswordConfirmView(APIView):
+    def post(self, request, uidb64, token):
+        new_password = request.data.get("new_password")
+        confirm_password = request.data.get("confirm_password")
+
+        if not new_password or not confirm_password:
+            return Response(
+                {"error": "Beide Passwortfelder sind erforderlich."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if new_password != confirm_password:
+            return Response(
+                {"error": "Passwörter stimmen nicht überein."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+            return Response(
+                {"error": "Ungültiger Benutzer."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not default_token_generator.check_token(user, token):
+            return Response(
+                {"error": "Ungültiger oder abgelaufener Token."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user.set_password(new_password)
+        user.save()
+
+        return Response(
+            {"detail": "Your Password has been successfully reset."},
+            status=status.HTTP_200_OK
+        )

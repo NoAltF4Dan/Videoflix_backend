@@ -1,3 +1,6 @@
+from django.urls import path
+from .views import PasswordConfirmView, PasswordResetView, CookieTokenRefreshView, RegisterView, ActivateView, LoginView, LogoutView
+
 urlpatterns = [
     # Register new user → POST email, password
     path('register/', RegisterView.as_view(), name='register'),
@@ -20,3 +23,6 @@ urlpatterns = [
     # Confirm password reset with token
     path('password_confirm/<str:uidb64>/<str:token>/', PasswordConfirmView.as_view(), name='password_reset_confirm'),
 ]
+
+
+

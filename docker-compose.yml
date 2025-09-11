@@ -1,3 +1,5 @@
+version: '3.9'
+
 services:
   db:
     image: postgres:latest
@@ -20,9 +22,8 @@ services:
       context: .
       dockerfile: backend.Dockerfile
     container_name: videoflix
-
     env_file:
-      - .env.template
+      - .env
     volumes:
       - .:/app
       - videoflix_media:/app/media
@@ -32,6 +33,7 @@ services:
     depends_on:
       - db
       - redis
+    command: python manage.py runserver 0.0.0.0:8000
 
   mailhog:
     image: mailhog/mailhog

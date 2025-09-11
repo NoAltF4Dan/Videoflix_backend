@@ -2,8 +2,6 @@ services:
   db:
     image: postgres:latest
     container_name: videoflix_database
-    env_file:
-      - .env.template
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
@@ -22,6 +20,7 @@ services:
       context: .
       dockerfile: backend.Dockerfile
     container_name: videoflix
+
     env_file:
       - .env.template
     volumes:
@@ -30,8 +29,6 @@ services:
       - videoflix_static:/app/static
     ports:
       - "8000:8000"
-    environment:
-      - PYTHONUNBUFFERED=1
     depends_on:
       - db
       - redis

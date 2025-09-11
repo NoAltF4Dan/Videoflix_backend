@@ -47,6 +47,6 @@ docker-compose.override.yml
 # macOS
 .DS_Store
 
-# Node (falls du Frontend hast)
+# Node
 node_modules/
 dist/

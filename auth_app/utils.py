@@ -1,6 +1,6 @@
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
-from service_app.models import Profiles
+from content_app.models import Profiles
 import os
 
 def send_validation_email(profil_id):

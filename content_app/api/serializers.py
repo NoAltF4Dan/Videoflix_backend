@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from service_app.models import Video, Profiles, VideoProgress, CurrentVideoConvertProgress
+from content_app.models import Video, Profiles, VideoProgress, CurrentVideoConvertProgress
 import os
 
 

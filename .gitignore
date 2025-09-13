@@ -1,52 +1,6 @@
-.DS_Store
-
+.env
+*.sqlite3
+*.db
 env/
 venv/
-ENV/
 .venv/
-.env
-.Python
-
-# Ignore Python cache files
-**/__pycache__/
-*.py[cod]
-
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.sqlite3
-
-# Django
-*.log
-*.pot
-*.pyc
-db.sqlite3
-/media/
-*.pyc
-
-# Environment
-.env
-.env.local
-.env.dev
-.env.template.example
-
-# Docker
-*.env
-*.dockerignore
-docker-compose.override.yml
-**/Dockerfile
-
-# IDEs / Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# macOS
-.DS_Store
-
-# Node
-node_modules/
-dist/

@@ -1,5 +1,5 @@
 from rest_framework import generics
-from service_app.models import Video, Profiles, VideoProgress, CurrentVideoConvertProgress
+from content_app.models import Video, Profiles, VideoProgress, CurrentVideoConvertProgress
 from rest_framework.views import APIView
 from .serializers import ProfilesSerializer, VideosSerializer, VideoProgressSerializer, CurrentVideoConvertProgressSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny

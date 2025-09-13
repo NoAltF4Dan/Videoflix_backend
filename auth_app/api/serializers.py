@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from service_app.models import Profiles
+from content_app.models import Profiles
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404

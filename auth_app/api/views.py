@@ -3,7 +3,7 @@ from auth_app.api.serializers import RegestrationSerializer, SendEmailForResetPa
 from rest_framework import status
 from rest_framework.views import APIView 
 from rest_framework.response import Response
-from service_app.models import Profiles
+from content_app.models import Profiles
 from django.http import HttpResponseRedirect
 from dotenv import load_dotenv
 from rest_framework import status

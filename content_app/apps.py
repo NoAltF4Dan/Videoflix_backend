@@ -1,8 +1,9 @@
+# content_app/apps.py
 from django.apps import AppConfig
 
-
-class ServiceAppConfig(AppConfig):
+class ContentAppConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "service_app"
+    name = "content_app"
+
     def ready(self):
-        import service_app.signals
+        import content_app.signals

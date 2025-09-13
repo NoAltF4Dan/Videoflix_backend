@@ -1,77 +1,152 @@
+from rest_framework import generics
+from service_app.models import Video, Profiles, VideoProgress, CurrentVideoConvertProgress
 from rest_framework.views import APIView
+from .serializers import ProfilesSerializer, VideosSerializer, VideoProgressSerializer, CurrentVideoConvertProgressSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from .models import Video
-from .serializers import VideoSerializer
-from django.http import FileResponse, Http404
+from django.core.cache import cache
+from auth_app.auth import CookieJWTAuthentication
+from django.contrib.auth.models import User
 import os
+import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+django.setup()
 
-class VideoListView(APIView):
-    """
-    API endpoint to list all available videos.
+CACHE_TIMER = os.getenv('CACHE_TIMER', default=0)
 
-    Permissions:
-        - Requires JWT authentication.
+class ProfilesListView(generics.ListAPIView):
+    queryset = Profiles.objects.all()
+    serializer_class = ProfilesSerializer
 
-    GET /api/video/
-    Returns:
-        - 200: List of videos serialized with VideoSerializer.
-    """
+class ProfilesDetailView(generics.RetrieveAPIView):
+    queryset = Profiles.objects.all()
+    serializer_class = ProfilesSerializer
+
+class VideosListView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
-    def get(self, request):
+    def groupFactory(self, serialized, request):
         videos = Video.objects.all()
-        serializer = VideoSerializer(videos, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        amount = Video.objects.count()
+        grouped = {}
+        if amount == 0:
+                return {}
+        newest = videos.order_by('-created_at')[:10]
+        grouped['newOnVideoflix'] = {
+            'title': 'New On Videoflix',
+            'content': VideosSerializer(newest, many=True, context={'request': request}).data
+        }
+        for item in serialized:
+            genre = item['genre']
+            if genre not in grouped:
+                grouped[genre] = {
+                    'title': genre.capitalize(),
+                    'content': []
+                }
+            grouped[genre]['content'].append(item)
+        return grouped
+        
+    def get(self, request):
+        access_token = request.COOKIES.get('access_key')
+        cache_key = 'video_list_view'
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return Response(cached_response)
+
+        videos = Video.objects.all()
+        serialized = VideosSerializer(videos, many=True, context={'request': request}).data
+        grouped = self.groupFactory(serialized, request)
+        cache.set(cache_key, grouped, timeout=CACHE_TIMER)
+        return Response(grouped)
+    
+    def post(self, request):
+        access_token = request.COOKIES.get('access_key')
+        serializer = VideosSerializer(data= request.data, context={'request': request})
+        if serializer.is_valid():
+            cache.delete("video_list_view")
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class VideosDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Video.objects.all()
+    serializer_class = VideosSerializer
+
+    def perform_destroy(self, instance):
+        cache.delete("video_list_view")
+        return super().perform_destroy(instance)
 
 
-class VideoHLSManifestView(APIView):
-    """
-    API endpoint to retrieve HLS master playlist (index.m3u8) for a specific video.
-
-    Permissions:
-        - Requires JWT authentication.
-
-    URL parameters:
-        - movie_id: int, ID of the video
-        - resolution: str, resolution of the video (e.g., '480p', '720p', '1080p')
-
-    GET /api/video/<movie_id>/<resolution>/index.m3u8
-    Returns:
-        - 200: FileResponse with HLS master playlist
-        - 404: If manifest file does not exist
-    """
+class VideoProgressListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+    serializer_class = VideoProgressSerializer
 
-    def get(self, request, movie_id, resolution):
-        file_path = f'/app/media/videos/{movie_id}/{resolution}/index.m3u8'
-        if not os.path.exists(file_path):
-            raise Http404("Video manifest not found")
-        return FileResponse(open(file_path, 'rb'), content_type='application/vnd.apple.mpegurl')
+    def get_queryset(self):
+        user = self.request.user
+        profile = None
+        if not user.is_authenticated:
+            return VideoProgress.objects.none()
+        profile = user.abstract_user
+
+        if not user.is_authenticated:
+            return VideoProgress.objects.none()
+        if not profile:
+            return VideoProgress.objects.none()
+        
+        queryset = VideoProgress.objects.filter(profiles=profile)
+        video = self.request.query_params.get("videoId")
+        if video:
+            queryset = queryset.filter(video=video)
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+
+        if hasattr(self, 'existing_instance'):
+            serializer = self.get_serializer(self.existing_instance)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return response
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        profiles = user.abstract_user
+        video = serializer.validated_data.get('video')
+        existing = VideoProgress.objects.filter(profiles=profiles, video=video).first()
+
+        if existing:
+            self.existing_instance = existing
+            return
+        
+        serializer.save(profiles=profiles)
 
 
-class VideoSegmentView(APIView):
-    """
-    API endpoint to retrieve a single HLS video segment (.ts) for a specific video.
-
-    Permissions:
-        - Requires JWT authentication.
-
-    URL parameters:
-        - movie_id: int, ID of the video
-        - resolution: str, resolution of the video (e.g., '480p', '720p', '1080p')
-        - segment: str, filename of the segment (e.g., '000.ts')
-
-    GET /api/video/<movie_id>/<resolution>/<segment>/
-    Returns:
-        - 200: FileResponse with video segment (Content-Type: video/MP2T)
-        - 404: If segment does not exist
-    """
+class VideoProgressDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+    serializer_class = VideoProgressSerializer
 
-    def get(self, request, movie_id, resolution, segment):
-        file_path = f'/app/media/videos/{movie_id}/{resolution}/{segment}'
-        if not os.path.exists(file_path):
-            raise Http404("Video segment not found")
-        return FileResponse(open(file_path, 'rb'), content_type='video/MP2T')
+    def get_queryset(self):
+        pk = self.kwargs.get("pk")
+        queryset = VideoProgress.objects.filter(pk=pk)
+        return queryset
+    
+    def perform_update(self, serializer):
+        return super().perform_update(serializer)
+    
+class CurrentVideoConvertProgressListView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+    serializer_class = CurrentVideoConvertProgressSerializer
+    queryset = CurrentVideoConvertProgress.objects.all() 
+
+class CurrentVideoConvertProgressDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+    serializer_class = CurrentVideoConvertProgressSerializer
+    queryset = CurrentVideoConvertProgress.objects.all() 

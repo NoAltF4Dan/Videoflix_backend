@@ -1,13 +1,13 @@
 from django.urls import path
-from .views import VideoListView, VideoHLSManifestView, VideoSegmentView
+from .views import ProfilesDetailView, ProfilesListView, VideosDetailView, VideosListView, VideoProgressListCreateView, VideoProgressDetailView, CurrentVideoConvertProgressListView, CurrentVideoConvertProgressDetailView
 
 urlpatterns = [
-    # List all available videos (JWT required)
-    path('', VideoListView.as_view(), name='video_list'),
-
-    # Get HLS manifest (.m3u8) for a specific video and resolution
-    path('<int:movie_id>/<str:resolution>/index.m3u8', VideoHLSManifestView.as_view(), name='video_hls_manifest'),
-
-    # Get single HLS video segment (.ts) for streaming
-    path('<int:movie_id>/<str:resolution>/<str:segment>/', VideoSegmentView.as_view(), name='video_segment'),
+    path("media/", VideosListView.as_view(), name="media_list"),
+    path("media/<int:pk>/", VideosDetailView.as_view(), name="media_detail"),
+    path("profiles/", ProfilesListView.as_view(), name="profile_list"),
+    path("profiles/<int:pk>/", ProfilesDetailView.as_view(), name="profile_detail"),
+    path("video/progress/", VideoProgressListCreateView.as_view(), name="video_progress_list"),
+    path("video/progress/<int:pk>", VideoProgressDetailView.as_view(), name="video_progress_detail"),
+    path("video/current-progress/", CurrentVideoConvertProgressListView.as_view(), name="video_current_progress_list"),
+    path("video/current-progress/<int:pk>/", CurrentVideoConvertProgressDetailView.as_view(), name="video_current_progress_detail"),
 ]

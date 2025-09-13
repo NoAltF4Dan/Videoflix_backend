@@ -1,28 +1,17 @@
 from django.urls import path
-from .views import PasswordConfirmView, PasswordResetView, CookieTokenRefreshView, RegisterView, ActivateView, LoginView, LogoutView
+from .views import RegestrationView, VerifyEmailView, SendEmailForResetPasswordView, SetNewPasswordView, ResendEmailView, CookieTokenObtainView, CookieTokenRefreshView, CookieTokenLogoutView, CookieIsAuthenticatedAndVerifiedView
+from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshView)
 
 urlpatterns = [
-    # Register new user → POST email, password
-    path('register/', RegisterView.as_view(), name='register'),
-
-    # Activate user account via email link
-    path('activate/<str:uidb64>/<str:token>/', ActivateView.as_view(), name='activate'),
-
-    # Login → returns JWT cookies
-    path('login/', LoginView.as_view(), name='login'),
-
-    # Logout → clears cookies & blacklists refresh token
-    path('logout/', LogoutView.as_view(), name='logout'),
-
-    # Refresh access token using refresh token cookie
+    path("login/", CookieTokenObtainView.as_view(), name='token_obtain_pair'),
+    path("registration/", RegestrationView.as_view(), name="registration"),
+    path('verify-email/', VerifyEmailView.as_view(), name='verify_email'),
+    path('find-user/', SendEmailForResetPasswordView.as_view(), name='find_user_reset'),
+    path('password_reset/', SetNewPasswordView.as_view(), name='password_reset'),
+    path('resend-email/', ResendEmailView.as_view(), name='resend-email'),
+    path('logout/', CookieTokenLogoutView.as_view(), name='logout'),
     path('token/refresh/', CookieTokenRefreshView.as_view(), name='token_refresh'),
-
-    # Request password reset email
-    path('password_reset/', PasswordResetView.as_view(), name='password_reset'),
-
-    # Confirm password reset with token
-    path('password_confirm/<str:uidb64>/<str:token>/', PasswordConfirmView.as_view(), name='password_reset_confirm'),
+    path('is-authenticated/', CookieIsAuthenticatedAndVerifiedView.as_view(), name='token_is_auth' )
 ]
-
 
 

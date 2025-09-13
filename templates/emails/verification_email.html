@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+      a.button:hover {
+      background-color: #7e2eff;
+    }
+  </style>
+  <meta charset="utf-8">
+  <title>Confirm your email</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+ 
+  <div style="max-width: 850px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px;">
+
+    <div style="width: 100%; display: flex; justify-content: center; align-items: center;">
+      <img src="https://arndt-marcel.de/assets/img/videoflix/logo.png" alt="Videoflix Logo" style="width: 250px;">
+    </div>
+    <p style="color: #535456; font-size:1rem; line-height: 1.6;">Dear <span style="color: #2e3edf;">{{ username }}</span>,</p>
+    <p style="color: #535456; font-size:1rem; line-height: 1.6;">Thank you for registering with <span style="color: #2e3edf;">Videoflix</span>. To complete your registration and verify your email address, please click the link below:</p>
+    <p style="color: #535456; font-size:1rem; line-height: 1.6;">
+      <a href="{{ verify_link }}"  style="background-color: #2e3edf; font-size:1.125rem ; font-weight: 600; color: white; padding: 12px 20px; text-decoration: none; border-radius: 24px;">
+        Activate account
+      </a>
+    </p>
+    <p style="color: #535456; font-size:1rem; margin-bottom:16px;" >If you did not create an account with us, please disregard this email.</p>
+    <p style="color: #535456; font-size:1rem; margin-bottom:16px;">Best regards,</p>
+    <p style="color: #535456; font-size:1rem;">Your Videoflix Team.</p>
+  </div>
+</body>
+</html>

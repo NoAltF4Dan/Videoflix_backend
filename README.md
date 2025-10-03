@@ -1,11 +1,5 @@
 # Videoflix Backend
 
-[![Python](https://img.shields.io/badge/Python-3.13.1-blue)](https://www.python.org/)
-[![Django](https://img.shields.io/badge/Django-5.2.4-green)](https://www.djangoproject.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-7-red?logo=redis&logoColor=white)](https://redis.io/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-blue?logo=docker)](https://www.docker.com/)
-
 ## 📌 Project Description
 
 The **Videoflix Backend** powers the **Videoflix** video streaming platform, inspired by Netflix.  

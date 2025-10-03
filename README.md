@@ -76,7 +76,7 @@ This project uses **Docker Compose** for easy deployment. Containers include:
 
 2. Create and activate a virtual environment:
    ```sh
-   python -m venv venv
+   python -m venv venv 
    source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 3. Install dependencies:

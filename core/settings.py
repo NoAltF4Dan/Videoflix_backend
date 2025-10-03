@@ -18,6 +18,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+def _split_env_list(name: str, default: str):
+    return [x.strip() for x in os.getenv(name, default).split(",") if x.strip()]
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,13 +35,12 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='django-insecure-@#x5h3zj!g+8g1v@2^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", default="localhost").split(",")
+ALLOWED_HOSTS = _split_env_list("ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-SITE_URL = os.environ.get("SITE_URL", default="http://localhost:5500")
-SITE_NAME = 'Videoflix'
-
+SITE_URL = os.getenv("SITE_URL", "http://localhost:5501").rstrip("/")
+SITE_NAME = "Videoflix"
 
 # Application definition
 
@@ -82,15 +84,15 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
 
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", default="http://localhost:5500").split(",")
+CSRF_TRUSTED_ORIGINS = _split_env_list(
+    "CSRF_TRUSTED_ORIGINS",
+    "http://localhost:5500,http://127.0.0.1:5500,http://localhost:5501,http://127.0.0.1:5501",
+)
 
-CORS_ALLOWED_ORIGINS = [
-    'http://127.0.0.1:5500',
-    'http://localhost:5500',
-    'http://127.0.0.1:5501',
-    'http://localhost:5501',
-]
-
+CORS_ALLOWED_ORIGINS = _split_env_list(
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:5500,http://127.0.0.1:5500,http://localhost:5501,http://127.0.0.1:5501",
+)
 CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'core.urls'

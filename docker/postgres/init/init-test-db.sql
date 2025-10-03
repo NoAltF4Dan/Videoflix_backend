@@ -1,0 +1,4 @@
+CREATE USER app_user WITH PASSWORD 'secret' CREATEDB;
+CREATE DATABASE app_test OWNER app_user;
+
+GRANT ALL PRIVILEGES ON DATABASE app_test TO app_user;

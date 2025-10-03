@@ -1,0 +1,47 @@
+name: Django CI/CD
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/videoflix-backend
+  RELEASE_TAG: latest
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Set IMAGE env
+        run: echo "IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.RELEASE_TAG }}" >> $GITHUB_ENV
+
+      - name: Build
+        run: docker compose -f docker-compose.prod.yml build web
+
+      - name: Push
+        run: docker push "$IMAGE"
+
+      - name: Deploy (per SSH)
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            echo ${{ secrets.GHCR_PAT }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+            docker pull "$IMAGE"
+            cd ${{ secrets.VPS_APP_PATH }}
+            IMAGE="$IMAGE" docker compose -f docker-compose.prod.yml up -d --force-recreate
+            docker logout ${{ env.REGISTRY }}

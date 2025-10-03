@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account bestätigen</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .button { 
+            display: inline-block; 
+            padding: 12px 24px; 
+            background-color: #28a745; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin: 20px 0;
+        }
+        .footer { margin-top: 30px; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Willkommen bei {{ site_name }}!</h2>
+        
+        <p>Hallo {{ user.get_full_name|default:user.username }},</p>
+        
+        <p>danke für Ihre Registrierung bei {{ site_name }}!</p>
+        
+        <p>Um Ihren Account zu aktivieren, bestätigen Sie bitte Ihre E-Mail-Adresse:</p>
+        
+        <a href="{{ confirmation_url }}" class="button">Account bestätigen</a>
+        
+        <p>Oder kopieren Sie diesen Link in Ihren Browser:</p>
+        <p><a href="{{ confirmation_url }}">{{ confirmation_url }}</a></p>
+        
+        <p>Dieser Link ist 24 Stunden gültig.</p>
+        
+        <p>Falls Sie sich nicht registriert haben, ignorieren Sie diese E-Mail.</p>
+        
+        <div class="footer">
+            <p>Mit freundlichen Grüßen,<br>
+            Ihr {{ site_name }} Team</p>
+        </div>
+    </div>
+</body>
+</html>

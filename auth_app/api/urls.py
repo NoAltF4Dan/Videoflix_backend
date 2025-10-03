@@ -5,7 +5,9 @@ from .views import RegistrationView, CookieRefreshView, CookieEmailLoginView, ac
 
 
 urlpatterns = [
-    path('csrf/', csrf, name='csrf'),
+    
+    path('csrf//
+         ', csrf, name='csrf/'),
     path('register/', RegistrationView.as_view(), name='register'),
     path('login/', CookieEmailLoginView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', CookieRefreshView.as_view(), name='token_refresh'),

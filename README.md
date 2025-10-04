@@ -1,4 +1,5 @@
 ![Videoflix Logo](./_github/assets/logo_icon.svg)
+<img src="./_github/assets/logo_icon.svg" alt="Videoflix Logo" width="320">
 
 ### 📌 Project Description
 

@@ -11,6 +11,32 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 User = get_user_model()
 
 
+#--------------
+# RegistrationSerializer
+# Purpose:
+#   Register a new (inactive) user using email + password confirmation,
+#   with an explicit privacy-policy acceptance.
+#
+# Accepts (request payload):
+#   - email (str, required, ASCII-only, unique)
+#   - password (str, required, write-only)
+#   - confirmed_password (str, required, must match password)
+#   - privacy_policy (str, required, must equal "on")
+#
+# Validation:
+#   - confirmed_password must equal password
+#   - email must be ASCII-only and unique
+#   - privacy_policy must be "on"
+#
+# save():
+#   - Derives username from email local-part; if taken, appends short UUID
+#   - Creates user with is_active=False
+#   - Hashes password via set_password()
+#
+# Notes:
+#   - Uses generic error for existing emails to avoid user enumeration
+#   - No side effects beyond creating the user instance
+#--------------
 class RegistrationSerializer(serializers.ModelSerializer):
     """Serializer for registering a new user with email, password confirmation, and privacy policy acceptance."""
     confirmed_password = serializers.CharField(write_only=True)
@@ -66,6 +92,28 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return account
 
 
+#--------------
+# CustomTokenObtainPairSerializer
+# Purpose:
+#   Issue JWT access/refresh tokens using email + password (instead of username).
+#
+# Accepts (request payload):
+#   - email (str, required; normalized to lowercase)
+#   - password (str, required; write-only)
+#
+# Validation & flow:
+#   - Normalizes email to lowercase
+#   - Looks up user by email; if not found → "Invalid email or password"
+#   - Verifies password with check_password(); if wrong → same error
+#   - Injects user.username into attrs and delegates to SimpleJWT for token creation
+#
+# Returns:
+#   - {"refresh": "<token>", "access": "<token>"}
+#
+# Notes:
+#   - Removes "username" field, if present, to avoid confusion in API schema
+#   - Avoids leaking whether an email exists via generic error messages
+#--------------
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Custom JWT serializer authenticating users via email and password instead of username."""
     email = serializers.EmailField()
@@ -101,6 +149,20 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
 
+#--------------
+# PasswordResetSerializer
+# Purpose:
+#   Start a password-reset flow by collecting a normalized email.
+#
+# Accepts (request payload):
+#   - email (str, required)
+#
+# Validation:
+#   - Lowercases and trims the email; returns the normalized value
+#
+# Notes:
+#   - Does not send emails itself; the view/service should handle token/email
+#--------------
 class PasswordResetSerializer(serializers.Serializer):
     """Serializer for initiating a password reset request via email."""
     email = serializers.EmailField()
@@ -110,6 +172,26 @@ class PasswordResetSerializer(serializers.Serializer):
         return value.lower().strip()
 
 
+#--------------
+# PasswordResetConfirmSerializer
+# Purpose:
+#   Validate and set a new password for a user (given a valid reset context).
+#
+# Accepts (request payload):
+#   - new_password (str, required, min_length=8)
+#   - confirm_password (str, required; must match new_password)
+#
+# Validation:
+#   - Runs Django's validate_password() (length/complexity/similarity rules)
+#   - Ensures new_password == confirm_password
+#
+# save(user):
+#   - Hashes and updates the user's password, then saves the user
+#   - Returns the updated user instance
+#
+# Notes:
+#   - Error messages are returned as DRF validation errors (JSON-friendly)
+#--------------
 class PasswordResetConfirmSerializer(serializers.Serializer):
     """Serializer for confirming and setting a new user password."""
     new_password = serializers.CharField(

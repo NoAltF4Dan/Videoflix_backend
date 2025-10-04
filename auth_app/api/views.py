@@ -30,7 +30,20 @@ User = get_user_model()
 def csrf(request):
     return JsonResponse({"detail": "CSRF cookie set"})
 
-
+#--------------
+# RegistrationView
+# Purpose:
+#   Handle user sign-up, create an inactive account, generate an activation token,
+#   and trigger a confirmation email.
+#
+# Methods:
+#   - POST: validates payload with RegistrationSerializer, saves user (inactive),
+#           creates token via default_token_generator, and sends confirmation email.
+#
+# Security & UX:
+#   - Returns generic 400 with "Email or Password is invalid" on serializer errors
+#     to avoid leaking exact validation reasons to attackers.
+#--------------
 class RegistrationView(APIView):
     """API endpoint for registering a new user and sending a confirmation email with activation token."""
     permission_classes = [AllowAny]
@@ -92,7 +105,23 @@ def activate_account(request, uidb64, token):
             'error': 'Invalid activation link or token expired.'
         }, status=status.HTTP_400_BAD_REQUEST)
 
-
+#--------------
+# CookieRefreshView
+# Purpose:
+#   Refresh access token using a refresh token stored in an HTTP-only cookie.
+#
+# Methods:
+#   - POST: reads "refresh_token" from cookies, validates it with TokenRefreshView
+#           serializer, then issues a new access token and sets it as a secure cookie.
+#
+# Cookies:
+#   - Reads: refresh_token
+#   - Writes: access_token (httponly, secure, samesite=None, domain from settings)
+#
+# Security:
+#   - No authentication required (token-based); permission AllowAny.
+#   - Returns 400 if refresh token missing; 401 if invalid.
+#--------------
 class CookieRefreshView(TokenRefreshView):
     """API endpoint to refresh access tokens using a refresh token stored in cookies."""
     authentication_classes = []
@@ -127,7 +156,22 @@ class CookieRefreshView(TokenRefreshView):
         )
         return response
 
-
+#--------------
+# CookieEmailLoginView
+# Purpose:
+#   Authenticate via email + password (SimpleJWT) and set both access and refresh
+#   tokens as secure HTTP-only cookies.
+#
+# Methods:
+#   - POST: validates credentials with CustomTokenObtainPairSerializer,
+#           sets "access_token" and "refresh_token" cookies, returns success message.
+#
+# Cookies:
+#   - Writes: access_token, refresh_token (httponly, secure, samesite=None, domain from settings)
+#
+# Notes:
+#   - Uses AllowAny because authentication is performed within the view.
+#--------------
 class CookieEmailLoginView(TokenObtainPairView):
     """API endpoint for user login using email and password with JWT stored in cookies."""
     permission_classes = [AllowAny]
@@ -161,7 +205,21 @@ class CookieEmailLoginView(TokenObtainPairView):
         )
         return response
 
-
+#--------------
+# LogoutView
+# Purpose:
+#   Invalidate the refresh token (if present) and clear auth cookies to log the user out.
+#
+# Methods:
+#   - POST: attempts to blacklist "refresh_token" cookie via SimpleJWT; clears cookies.
+#
+# Cookies:
+#   - Reads: refresh_token
+#   - Deletes: access_token, refresh_token
+#
+# Notes:
+#   - Ignores TokenError during blacklist to ensure idempotent logout.
+#--------------
 class LogoutView(APIView):
     """API endpoint for logging out and invalidating the user’s refresh token."""
     permission_classes = [AllowAny]
@@ -185,7 +243,18 @@ class LogoutView(APIView):
         response.delete_cookie("refresh_token", path="/", samesite="None", domain=settings.COOKIE_DOMAIN)
         return response
 
-
+#--------------
+# PasswordResetView
+# Purpose:
+#   Begin password reset by validating the email and, if the active account exists,
+#   sending a reset email. Response is generic to avoid account enumeration.
+#
+# Methods:
+#   - POST: validates with PasswordResetSerializer; sends email if user exists and is active.
+#
+# Security:
+#   - Always returns success message regardless of account existence.
+#--------------
 class PasswordResetView(APIView):
     """API endpoint for requesting a password reset via email."""
     permission_classes = [AllowAny]
@@ -215,6 +284,21 @@ class PasswordResetView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+#--------------
+# PasswordResetConfirmView
+# Purpose:
+#   Complete password reset: decode user from uidb64, validate the token,
+#   and set a new password using PasswordResetConfirmSerializer.
+#
+# Methods:
+#   - POST: verifies uidb64 and token, runs serializer validation, saves new password.
+#
+# Errors:
+#   - Raises Http404 on invalid/expired tokens or bad uid; returns 400/500 accordingly.
+#
+# Notes:
+#   - Expects the frontend to provide uidb64 and token (usually from email link).
+#--------------
 
 class PasswordResetConfirmView(APIView):
     """API endpoint for confirming a password reset and setting a new password."""

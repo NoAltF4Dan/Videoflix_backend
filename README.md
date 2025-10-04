@@ -1,6 +1,6 @@
 ![Videoflix Logo](./_github/assets/logo_icon.svg)
 
-## 📌 Project Description
+### 📌 Project Description
 
 The **Videoflix Backend** powers the **Videoflix** video streaming platform, inspired by Netflix.  
 Registered users can stream videos across multiple categories using **HLS**, with videos available in multiple resolutions. Admin users can manage the video library and platform content through a dedicated admin panel.  

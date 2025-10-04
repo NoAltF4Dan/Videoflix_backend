@@ -1,5 +1,5 @@
 # Videoflix Backend
-![Videoflix Logo](ordnerstruktur_github/assets/logo_icon.svg)
+![Videoflix Logo](./ordnerstruktur_github/assets/logo_icon.svg)
 
 ## 📌 Project Description
 

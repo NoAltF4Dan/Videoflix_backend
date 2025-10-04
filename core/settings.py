@@ -39,7 +39,7 @@ ALLOWED_HOSTS = _split_env_list("ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-SITE_URL = os.getenv("SITE_URL", "http://localhost:5501").rstrip("/")
+SITE_URL = os.getenv("SITE_URL", "")
 SITE_NAME = "Videoflix"
 
 # Application definition

@@ -1,4 +1,3 @@
-# Videoflix Backend
 ![Videoflix Logo](./_github/assets/logo_icon.svg)
 
 ## 📌 Project Description
